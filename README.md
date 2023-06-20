@@ -136,7 +136,7 @@ python -m apps.multi_render -n <file_name>
 
 ```bash
 # 1. Use HybrIK-X to estimate SMPL-X pose sequences from input video
-# 2. Rig ECON's reconstruction mesh, to be compatible with SMPL-X's parametrization.
+# 2. Rig ECON's reconstruction mesh, to be compatible with SMPL-X's parametrization (-dress for dress/skirts).
 # 3. Animate with SMPL-X pose sequences obtained from HybrIK-X, getting <file_name>_motion.npz
 # 4. Render the frames with Blender (rgb-partial texture, normal-normal colors), and combine them to get final video
 

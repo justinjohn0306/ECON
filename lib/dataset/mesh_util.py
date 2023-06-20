@@ -58,10 +58,14 @@ class SMPLX:
         self.smplx_flame_vid_path = osp.join(
             self.current_dir, "smpl_data/FLAME_SMPLX_vertex_ids.npy"
         )
-        self.smplx_mano_vid_path = osp.join(self.current_dir, "smpl_data/MANO_SMPLX_vertex_ids.pkl")
+        # smpl & smpl-x vertex semantic labels
         self.smpl_vert_seg_path = osp.join(
             osp.dirname(__file__), "../../lib/common/smpl_vert_segmentation.json"
         )
+        self.smplx_vert_seg_path = osp.join(
+            osp.dirname(__file__), "../../lib/common/smplx_vert_segmentation.json"
+        )
+
         self.front_flame_path = osp.join(self.current_dir, "smpl_data/FLAME_face_mask_ids.npy")
         self.smplx_vertex_lmkid_path = osp.join(
             self.current_dir, "smpl_data/smplx_vertex_lmkid.npy"
@@ -74,21 +78,43 @@ class SMPLX:
         self.smplx_vertex_lmkid = np.load(self.smplx_vertex_lmkid_path)
 
         self.smpl_vert_seg = json.load(open(self.smpl_vert_seg_path))
+        self.smplx_vert_seg = json.load(open(self.smplx_vert_seg_path))
+
+        # hand vertex ids
         self.smpl_mano_vid = np.concatenate([
-            self.smpl_vert_seg["rightHand"], self.smpl_vert_seg["rightHandIndex1"],
-            self.smpl_vert_seg["leftHand"], self.smpl_vert_seg["leftHandIndex1"]
+            self.smpl_vert_seg["rightHand"],
+            self.smpl_vert_seg["rightHandIndex1"],
+            self.smpl_vert_seg["leftHand"],
+            self.smpl_vert_seg["leftHandIndex1"],
         ])
 
-        self.smplx_eyeball_fid_mask = np.load(self.smplx_eyeball_fid_path)
-        self.smplx_mouth_fid = np.load(self.smplx_fill_mouth_fid_path)
-        self.smplx_mano_vid_dict = np.load(self.smplx_mano_vid_path, allow_pickle=True)
         self.smplx_mano_vid = np.concatenate([
-            self.smplx_mano_vid_dict["left_hand"], self.smplx_mano_vid_dict["right_hand"]
+            self.smplx_vert_seg["rightHand"],
+            self.smplx_vert_seg["rightHandIndex1"],
+            self.smplx_vert_seg["leftHand"],
+            self.smplx_vert_seg["leftHandIndex1"],
         ])
+
+        # leg vertex ids
+        self.smpl_leg_vid = np.concatenate([
+            self.smpl_vert_seg["rightUpLeg"],
+            self.smpl_vert_seg["leftUpLeg"],
+        ])
+
+        self.smplx_leg_vid = np.concatenate([
+            self.smplx_vert_seg["rightUpLeg"],
+            self.smplx_vert_seg["leftUpLeg"],
+        ])
+
+        # eyeball and mouth face ids
+        self.smplx_eyeball_fid_mask = np.load(self.smplx_eyeball_fid_path)
+        self.smplx_eyeball_vid = self.smplx_faces[self.smplx_eyeball_fid_mask].flatten()
+        self.smplx_mouth_fid = np.load(self.smplx_fill_mouth_fid_path)
+
         self.smplx_flame_vid = np.load(self.smplx_flame_vid_path, allow_pickle=True)
         self.smplx_front_flame_vid = self.smplx_flame_vid[np.load(self.front_flame_path)]
 
-        # hands
+        # hands vertex mask
         self.smplx_mano_vertex_mask = torch.zeros(self.smplx_verts.shape[0], ).index_fill_(
             0, torch.tensor(self.smplx_mano_vid), 1.0
         )
@@ -96,12 +122,12 @@ class SMPLX:
             0, torch.tensor(self.smpl_mano_vid), 1.0
         )
 
-        # face
+        # face vertex mask
         self.front_flame_vertex_mask = torch.zeros(self.smplx_verts.shape[0], ).index_fill_(
             0, torch.tensor(self.smplx_front_flame_vid), 1.0
         )
         self.eyeball_vertex_mask = torch.zeros(self.smplx_verts.shape[0], ).index_fill_(
-            0, torch.tensor(self.smplx_faces[self.smplx_eyeball_fid_mask].flatten()), 1.0
+            0, torch.tensor(self.smplx_eyeball_vid), 1.0
         )
 
         self.smplx_to_smpl = cPickle.load(open(self.smplx_to_smplx_path, "rb"))
